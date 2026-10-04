@@ -55,9 +55,14 @@ nav a.on{color:var(--ink);background:var(--card);border-color:var(--line)}
 .tick.sm{width:38px;height:38px}
 .tick.sm.on::after{font-size:18px}
 .hold{margin-left:auto;padding:10px 14px;border-radius:999px;border:1px solid var(--line);color:var(--accent);font-size:15px;white-space:nowrap}
-.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+details{font-size:15px}
+summary{color:var(--accent);font-size:14px;padding:5px 0;cursor:pointer}
+details p{margin:2px 0 6px}
+.ex details{margin:-8px 0 12px}
+.row>details{flex:0 0 100%;margin-top:-8px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
-.row>div{flex:1}
+.row>div{flex:1 1 0;min-width:0}
 .row .hold{margin-left:0}
 .list{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:2px 14px}
 
@@ -116,10 +121,10 @@ const PLAN = {
       cue: 'Body like a plank, chest to fist height. Hands on a bench if these are hard.',
       up: 'Pushups on the rings.',
       wk: ['2x6', '2x8', '3x8', '3x10', '3x12'] },
-    { id: 'rr', name: 'Ring row', rest: 75,
-      cue: 'Rings at waist height. Body straight, chest to rings. Feet forward is harder.',
-      up: 'Walk feet forward until you are nearly horizontal.',
-      wk: ['2x8', '2x10', '3x8', '3x10', '3x12'] },
+    { id: 'bor', name: 'Bent-over row', rest: 75,
+      cue: 'A bell in each hand. Hinge to 45 degrees, flat back, pull the bells to your hips.',
+      up: '3s lowering on every rep.',
+      wk: ['2x8 @two 25s', '2x10 @two 25s', '3x8 @two 35s', '3x10 @two 35s', '3x12 @two 35s'] },
     { id: 'pl', name: 'Plank', rest: 45,
       cue: 'Elbows under shoulders, glutes tight. Stop when hips sag.',
       up: '60s, then hollow holds.',
@@ -144,6 +149,7 @@ const PLAN = {
       wk: ['2x8/side @15 lb', '2x6/side @25 lb', '3x6/side @25 lb', '3x8/side @25 lb', '3x10/side @25 lb'] },
     { id: 'db', name: 'Dead bug', rest: 45,
       cue: 'Low back glued to the floor. Opposite arm and leg, slow.',
+      how: 'Lie on your back, arms straight up at the ceiling, knees bent 90 degrees above your hips. Press your low back flat into the floor and keep it there. Slowly lower your right arm overhead while you straighten your left leg, until both hover just off the floor. Bring them back, then do the other pair. That is 1 per side. If your back arches up, shorten the reach.',
       up: 'Hold a 15 overhead.',
       wk: ['2x6/side', '2x8/side', '3x8/side', '3x10/side', '3x10/side'] },
     { id: 'sw', name: 'Kettlebell swing', rest: 60,
@@ -194,22 +200,25 @@ const PLAN = {
   ]}
 };
 
-// [name, dose]
+// [name, dose, how]
 const WARMUP = [
   ['Jumping jacks or brisk march', '2 min'],
   ['Band pull-apart', '15 reps'],
   ['Bodyweight squat', '10 slow reps'],
-  ['Hip hinge, hands on hips', '10 reps'],
+  ['Hip hinge, hands on hips', '10 reps',
+    'The move behind deadlifts and swings. Stand with feet hip-width, knees soft. Push your butt straight back, like closing a car door with it. Your chest tips forward, back stays flat, shins stay vertical. Stop when the hamstrings pull tight, then squeeze your glutes to stand. It is a bow, not a squat: the knees barely bend.'],
   ['Bar hang with shoulder shrugs', '20s']
 ];
-// [name, dose, cue, hold seconds]
+// [name, dose, cue, hold seconds, how]
 const STRETCH = [
-  ['Hip flexor, half-kneeling', '2 x 30s per side', 'Back knee down, tuck the tailbone, squeeze that glute.', 30],
+  ['Hip flexor, half-kneeling', '2 x 30s per side', 'Back knee down, tuck the tailbone, squeeze that glute.', 30,
+    'Kneel on one knee with the other foot flat in front, both knees at 90 degrees. Pad the back knee. Stay tall. Tuck your tailbone under, like pulling your belt buckle toward your chin, and squeeze the glute on the kneeling side. You should feel it at the front of that hip. Do not lunge forward or arch your back. Hold 30s, swap legs, then repeat both.'],
   ['Hamstring, band around foot', '2 x 30s per side', 'On your back, leg straight up, pull gently.', 30],
   ['Figure-4 glute', '2 x 30s per side', 'On your back, ankle over knee, pull the legs in.', 30],
   ['Chest opener', '2 x 30s', 'Hands on the rings or a door frame, lean through.', 30],
   ["Child's pose, arms long", '2 x 30s', 'Sink the hips back, reach far, breathe slow.', 30],
-  ['Open book', '8 per side', 'Lie on your side, knees bent, rotate the top arm open.', 0]
+  ['Open book', '8 per side', 'Lie on your side, knees bent, rotate the top arm open.', 0,
+    'Lie on your side, knees bent 90 degrees and stacked, arms straight out in front with palms together. Keep the knees pinned together on the floor. Sweep the top arm up and over to the floor behind you, like opening a book, and let your head and chest follow the hand. Breathe out, pause, close. Do 8, then flip over. Loosens the upper back and chest.']
 ];
 // ---------- end of plan ----------
 
@@ -233,7 +242,7 @@ function rx(ex, i) {
   const o = typeof raw === 'string' ? { p: raw } : raw;
   const m = o.p.match(/^(\d+)x([^@]+?)(?:\s*@\s*(.+))?$/);
   const reps = m[2].trim(), t = reps.match(/^(\d+)s/);
-  return { id: ex.id, rest: ex.rest, up: ex.up, name: o.name || ex.name, cue: o.cue || ex.cue,
+  return { id: ex.id, rest: ex.rest, up: ex.up, how: o.how || ex.how, name: o.name || ex.name, cue: o.cue || ex.cue,
     sets: +m[1], reps, load: m[3] || '', hold: t ? +t[1] : 0 };
 }
 const moves = sid => PLAN[sid].ex.map(e => rx(e, wi())).filter(Boolean);
@@ -248,6 +257,8 @@ function tick(k, i, label, rest, cls) {
     `${rest ? ` data-rest="${rest}"` : ''} aria-label="${label || 'done'}"><span>${label || ''}</span></button>`;
 }
 const holdBtn = s => s ? `<button class="hold" data-act="hold" data-s="${s}">&#9654; ${s}s</button>` : '';
+const howTo = (n, h) => h ? `<details><summary>How</summary><p>${h}</p>` +
+  `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(n + ' exercise form')}" target="_blank" rel="noopener">Watch a demo</a></details>` : '';
 const nav = on => `<nav>${[['', 'Workout'], ['why', 'Why'], ['log', 'Log']].map(([h, t]) =>
   `<a href="#/${h}" class="${on === h ? 'on' : ''}">${t}</a>`).join('')}</nav>`;
 
@@ -288,12 +299,12 @@ function viewSession(sid) {
   const work = moves(sid).map(x => `
     <section class="ex">
       <div class="top"><h3>${x.name}</h3><span class="rx">${x.sets} &times; ${x.reps}${x.load ? ' &middot; ' + x.load : ''}</span></div>
-      <p class="cue">${x.cue}</p>
+      <p class="cue">${x.cue}</p>${howTo(x.name, x.how)}
       <div class="ticks">${Array.from({ length: x.sets }, (_, i) => tick(pre + x.id, i, i + 1, x.rest)).join('')}${holdBtn(x.hold)}</div>
       ${base && x.up ? `<p class="up">Too easy? ${x.up}</p>` : ''}
     </section>`).join('');
-  const warm = WARMUP.map(([n, d], i) => `<div class="row"><div><b>${n}</b><small>${d}</small></div>${tick(pre + 'wu' + i, 0, '', 0, 'sm')}</div>`).join('');
-  const cool = STRETCH.map(([n, d, c, h], i) => `<div class="row"><div><b>${n}</b><small>${d}. ${c}</small></div>${holdBtn(h)}${tick(pre + 'st' + i, 0, '', 0, 'sm')}</div>`).join('');
+  const warm = WARMUP.map(([n, d, h], i) => `<div class="row"><div><b>${n}</b><small>${d}</small></div>${tick(pre + 'wu' + i, 0, '', 0, 'sm')}${howTo(n, h)}</div>`).join('');
+  const cool = STRETCH.map(([n, d, c, h, how], i) => `<div class="row"><div><b>${n}</b><small>${d}. ${c}</small></div>${holdBtn(h)}${tick(pre + 'st' + i, 0, '', 0, 'sm')}${howTo(n + ' stretch', how)}</div>`).join('');
   app.innerHTML = `
     <a class="back" href="#/">&lsaquo; Week ${S.week}</a>
     <h1>${sid}: ${p.title}</h1>
