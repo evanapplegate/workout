@@ -382,8 +382,8 @@ let queue = [], cur = null, iv = null, ac = null;
 // Called from a tap: phones only let audio start from a user gesture.
 function prime() {
   try {
-    // 'playback' keeps the chime audible with the iPhone silent switch on
-    if (navigator.audioSession) navigator.audioSession.type = 'playback';
+    // 'ambient' mixes the chime over music. It needs the iPhone ringer on.
+    if (navigator.audioSession) navigator.audioSession.type = 'ambient';
     ac = ac || new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state !== 'running') ac.resume();
   } catch (e) {}
