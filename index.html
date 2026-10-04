@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EDE3D0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Workout">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>Workout</title>
+<style>
+:root{--bg:#EDE3D0;--card:#F6EFE1;--ink:#3A3026;--muted:#8B7A63;--line:#D6C7AB;--accent:#A4633A;--done:#6F8A5B}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{margin:0;font-family:Optima,"Optima Nova",Candara,"Gill Sans","Trebuchet MS",sans-serif;color:var(--ink);background:var(--bg);font-size:17px;line-height:1.35;touch-action:manipulation;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+a{color:var(--accent)}
+#app{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 16px 130px}
+h1{font-size:34px;font-weight:normal;margin:0;letter-spacing:.01em}
+h2{font-size:13px;font-weight:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:26px 0 8px}
+h3{font-size:19px;font-weight:bold;margin:0}
+small{display:block;color:var(--muted);font-size:14px}
+
+nav{display:flex;gap:6px;margin-bottom:20px}
+nav a{flex:1;text-align:center;padding:9px 0;border-radius:999px;color:var(--muted);text-decoration:none;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border:1px solid transparent}
+nav a.on{color:var(--ink);background:var(--card);border-color:var(--line)}
+
+.wk{display:flex;align-items:center;justify-content:space-between;text-align:center}
+.arrow{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:24px;line-height:1}
+.arrow:disabled{opacity:.3}
+.sub{color:var(--muted);font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+.note{margin:14px 0 0;text-align:center;color:var(--ink)}
+
+.card{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;text-decoration:none;color:var(--ink)}
+.card b{font-size:19px}
+.card .go{margin-left:auto;color:var(--muted);font-size:22px}
+.badge{flex:none;width:46px;height:46px;border-radius:50%;border:2px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-size:21px}
+.card.done .badge{background:var(--done);border-color:var(--done);color:#fff}
+.card.locked{opacity:.5}
+
+.ex{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.rx{color:var(--accent);font-size:18px;white-space:nowrap}
+.cue{color:var(--muted);font-size:15px;margin:4px 0 12px}
+.up{color:var(--muted);font-size:14px;margin:12px 0 0;font-style:italic}
+.ticks{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tick{flex:none;width:48px;height:48px;border-radius:50%;border:2px solid var(--line);background:var(--bg);color:var(--muted);font-size:17px;transition:background .15s,border-color .15s}
+.tick.on{background:var(--done);border-color:var(--done);color:#fff}
+.tick.on span{display:none}
+.tick.on::after{content:"\2713";font-size:22px}
+.tick.sm{width:38px;height:38px}
+.tick.sm.on::after{font-size:18px}
+.hold{margin-left:auto;padding:10px 14px;border-radius:999px;border:1px solid var(--line);color:var(--accent);font-size:15px;white-space:nowrap}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row>div{flex:1}
+.row .hold{margin-left:0}
+.list{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:2px 14px}
+
+.back{display:inline-block;padding:10px 14px 10px 0;color:var(--muted);text-decoration:none;font-size:15px;letter-spacing:.1em;text-transform:uppercase}
+.btn{display:block;width:100%;margin:22px 0 0;padding:16px;border-radius:14px;background:var(--accent);color:#fff;font-size:19px;text-align:center}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--muted);font-size:16px;padding:12px}
+.prog{color:var(--muted)}
+
+.prose li{margin:8px 0}
+.prose ul{padding-left:20px;margin:0}
+.log{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}
+
+#timer{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--bg);padding-bottom:env(safe-area-inset-bottom)}
+#timer.go{background:var(--done)}
+#tbar{height:4px;background:var(--accent);width:0}
+.tin{max-width:520px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px 16px}
+#tlabel{font-size:14px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
+#tclock{font-size:34px;flex:1;font-variant-numeric:tabular-nums}
+#timer button{padding:10px 14px;border:1px solid rgba(237,227,208,.4);border-radius:999px;font-size:15px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="timer" hidden>
+  <div id="tbar"></div>
+  <div class="tin">
+    <span id="tlabel">Rest</span><span id="tclock"></span>
+    <button data-act="tplus">+15s</button><button data-act="tskip">Skip</button>
+  </div>
+</div>
+
+<script>
+// ---------- THE PLAN: edit me ----------
+// Each move has 5 prescriptions: weeks 1, 2, 3, 4, then Base (week 5 and on).
+// Format: "sets x reps @load". Reps can be "8", "6/side" or "30s". Load is optional.
+// null skips the move that week. Use {p, name, cue} to swap the move itself.
+// rest = seconds of rest that start when you tick a set. up = what to do once Base gets easy.
+
+const NOTES = [
+  '2 easy sets. End every set with 3 or 4 reps left in you.',
+  'Still 2 sets, slightly more work. Should feel almost too easy.',
+  '3 sets now, heavier bells. An optional 4th day opens up.',
+  '3 sets, more reps. Do 4 days if you feel fresh.',
+  'Base plan, 3 or 4 days. Hit every rep? Add a rep or go up a bell. Beat up? Repeat last week.'
+];
+const MINUTES = [25, 30, 35, 40, 45];   // rough session length per week
+const WALK = [20, 25, 30, 35, 40];      // daily walk minutes per week
+
+const PLAN = {
+  A: { title: 'Squat + Push', from: 1, ex: [
+    { id: 'gsq', name: 'Goblet squat', rest: 75,
+      cue: 'Bell at chest, elbows in. Sit between your heels, 3s down.',
+      up: 'Two 25s racked at the shoulders, then two 35s.',
+      wk: ['2x8 @25 lb', '2x10 @25 lb', '3x8 @35 lb', '3x10 @35 lb', '3x12 @35 lb'] },
+    { id: 'pu', name: 'Pushup', rest: 75,
+      cue: 'Body like a plank, chest to fist height. Hands on a bench if these are hard.',
+      up: 'Pushups on the rings.',
+      wk: ['2x6', '2x8', '3x8', '3x10', '3x12'] },
+    { id: 'rr', name: 'Ring row', rest: 75,
+      cue: 'Rings at waist height. Body straight, chest to rings. Feet forward is harder.',
+      up: 'Walk feet forward until you are nearly horizontal.',
+      wk: ['2x8', '2x10', '3x8', '3x10', '3x12'] },
+    { id: 'pl', name: 'Plank', rest: 45,
+      cue: 'Elbows under shoulders, glutes tight. Stop when hips sag.',
+      up: '60s, then hollow holds.',
+      wk: ['2x20s', '2x30s', '3x30s', '3x40s', '3x45s'] },
+    { id: 'fc', name: 'Farmer carry', rest: 60,
+      cue: 'A bell in each hand. Walk tall, slow steps.',
+      up: '60s walks.',
+      wk: ['2x30s @two 25s', '2x40s @two 25s', '3x30s @two 35s', '3x40s @two 35s', '3x45s @two 35s'] }
+  ]},
+  B: { title: 'Hinge + Pull', from: 1, ex: [
+    { id: 'dl', name: 'Kettlebell deadlift', rest: 75,
+      cue: 'Bells between your feet. Hips back, flat back, stand tall.',
+      up: 'Single-leg deadlift with one 35.',
+      wk: ['2x8 @two 25s', '2x8 @two 35s', '3x8 @two 35s', '3x10 @two 35s', '3x12 @two 35s'] },
+    { id: 'pup', name: 'Pullup', rest: 120,
+      cue: 'Stay far from your max. Full hang, chin over the bar.',
+      up: 'Add 1 rep to one set each week. At 5x5, retest your max.',
+      wk: ['3x2', '4x2', '3x3', '4x3', '5x3'] },
+    { id: 'ohp', name: 'One-arm press', rest: 75,
+      cue: 'Ribs down, glutes tight. Press to lockout, lower slow.',
+      up: '35 lb for 3x5 per side.',
+      wk: ['2x8/side @15 lb', '2x6/side @25 lb', '3x6/side @25 lb', '3x8/side @25 lb', '3x10/side @25 lb'] },
+    { id: 'db', name: 'Dead bug', rest: 45,
+      cue: 'Low back glued to the floor. Opposite arm and leg, slow.',
+      up: 'Hold a 15 overhead.',
+      wk: ['2x6/side', '2x8/side', '3x8/side', '3x10/side', '3x10/side'] },
+    { id: 'sw', name: 'Kettlebell swing', rest: 60,
+      cue: 'A hinge, not a squat. Snap the hips, bell floats to chest height.',
+      up: '8x10, then one-arm swings.',
+      wk: ['3x10 @25 lb', '4x10 @25 lb', '4x10 @35 lb', '5x10 @35 lb', '6x10 @35 lb'] }
+  ]},
+  C: { title: 'Legs + Rings', from: 1, ex: [
+    { id: 'rl', name: 'Reverse lunge', rest: 75,
+      cue: 'Step back, back knee kisses the floor. Front shin stays vertical.',
+      up: 'A 25 in each hand.',
+      wk: ['2x6/side', '2x8/side', '3x6/side @25 lb', '3x8/side @25 lb', '3x8/side @35 lb'] },
+    { id: 'cu', name: 'Chin-up', rest: 120,
+      cue: 'Palms facing you. Same rule as pullups: stay far from your max.',
+      up: 'Add 1 rep to one set each week.',
+      wk: ['3x2', '4x2', '3x3', '4x3', '5x3'] },
+    { id: 'rs', name: 'Ring support hold', rest: 75,
+      cue: 'Arms locked, rings turned out, shoulders down.',
+      up: 'At 3x5 clean negatives, try full dips for 3x3.',
+      wk: ['2x10s', '2x15s', '3x15s', '3x20s',
+        { p: '3x3', name: 'Ring dip negative', cue: 'Start locked out on top. Lower for 5s, step down, climb back up.' }] },
+    { id: 'row', name: 'One-arm row', rest: 60,
+      cue: 'Hand on a bench or knee. Pull the bell to your hip, no twisting.',
+      up: '3s lowering on every rep.',
+      wk: ['2x8/side @25 lb', '2x10/side @25 lb', '3x8/side @35 lb', '3x10/side @35 lb', '3x12/side @35 lb'] },
+    { id: 'sc', name: 'Suitcase carry', rest: 60,
+      cue: 'One bell, one side. Stay level, no leaning.',
+      up: '45s per side.',
+      wk: ['2x20s/side @25 lb', '2x30s/side @25 lb', '2x30s/side @35 lb', '3x30s/side @35 lb', '3x40s/side @35 lb'] }
+  ]},
+  D: { title: 'Engine (optional)', from: 3, ex: [
+    { id: 'emom', name: 'Swings, every minute', rest: 40,
+      cue: '10 swings at the top of each minute. Rest the remainder.',
+      up: 'One-arm swings, 5 per side.',
+      wk: [null, null, '6x10 @25 lb', '8x10 @25 lb', '10x10 @35 lb'] },
+    { id: 'tsq', name: 'Slow goblet squat', rest: 60,
+      cue: 'Light bell. 3s down, 1s pause at the bottom, stand.',
+      wk: [null, null, '2x8 @25 lb', '2x10 @25 lb', '3x10 @25 lb'] },
+    { id: 'bpa', name: 'Band pull-apart', rest: 45,
+      cue: 'Arms straight, pull the band to your chest, squeeze the shoulder blades.',
+      wk: [null, null, '2x15', '2x20', '3x20'] },
+    { id: 'sp', name: 'Side plank', rest: 45,
+      cue: 'Elbow under shoulder, straight line from head to heels.',
+      wk: [null, null, '2x20s/side', '2x25s/side', '3x30s/side'] },
+    { id: 'dh', name: 'Dead hang', rest: 60,
+      cue: 'Relaxed hang, long spine. Builds grip, opens shoulders.',
+      wk: [null, null, '2x20s', '2x30s', '3x30s'] }
+  ]}
+};
+
+// [name, dose]
+const WARMUP = [
+  ['Jumping jacks or brisk march', '2 min'],
+  ['Band pull-apart', '15 reps'],
+  ['Bodyweight squat', '10 slow reps'],
+  ['Hip hinge, hands on hips', '10 reps'],
+  ['Bar hang with shoulder shrugs', '20s']
+];
+// [name, dose, cue, hold seconds]
+const STRETCH = [
+  ['Hip flexor, half-kneeling', '2 x 30s per side', 'Back knee down, tuck the tailbone, squeeze that glute.', 30],
+  ['Hamstring, band around foot', '2 x 30s per side', 'On your back, leg straight up, pull gently.', 30],
+  ['Figure-4 glute', '2 x 30s per side', 'On your back, ankle over knee, pull the legs in.', 30],
+  ['Chest opener', '2 x 30s', 'Hands on the rings or a door frame, lean through.', 30],
+  ["Child's pose, arms long", '2 x 30s', 'Sink the hips back, reach far, breathe slow.', 30],
+  ['Open book', '8 per side', 'Lie on your side, knees bent, rotate the top arm open.', 0]
+];
+// ---------- end of plan ----------
+
+const KEY = 'workout.v1';
+const app = document.getElementById('app');
+const blank = () => ({ week: 1, ticks: {}, done: {}, log: [] });
+let S = load(), curS = null;
+
+function load() {
+  try { return Object.assign(blank(), JSON.parse(localStorage.getItem(KEY)) || {}); }
+  catch (e) { return blank(); }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+const wi = () => Math.min(S.week, 5) - 1;
+const today = () => new Date().toLocaleDateString('en-CA');
+const nice = d => new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+function rx(ex, i) {
+  const raw = ex.wk[i];
+  if (!raw) return null;
+  const o = typeof raw === 'string' ? { p: raw } : raw;
+  const m = o.p.match(/^(\d+)x([^@]+?)(?:\s*@\s*(.+))?$/);
+  const reps = m[2].trim(), t = reps.match(/^(\d+)s/);
+  return { id: ex.id, rest: ex.rest, up: ex.up, name: o.name || ex.name, cue: o.cue || ex.cue,
+    sets: +m[1], reps, load: m[3] || '', hold: t ? +t[1] : 0 };
+}
+const moves = sid => PLAN[sid].ex.map(e => rx(e, wi())).filter(Boolean);
+function progress(sid) {
+  const its = moves(sid);
+  return [its.reduce((a, x) => a + Math.min(S.ticks[`${S.week}.${sid}.${x.id}`] || 0, x.sets), 0),
+          its.reduce((a, x) => a + x.sets, 0)];
+}
+
+function tick(k, i, label, rest, cls) {
+  return `<button class="tick ${cls || ''} ${(S.ticks[k] || 0) > i ? 'on' : ''}" data-k="${k}" data-i="${i}"` +
+    `${rest ? ` data-rest="${rest}"` : ''} aria-label="${label || 'done'}"><span>${label || ''}</span></button>`;
+}
+const holdBtn = s => s ? `<button class="hold" data-act="hold" data-s="${s}">&#9654; ${s}s</button>` : '';
+const nav = on => `<nav>${[['', 'Workout'], ['why', 'Why'], ['log', 'Log']].map(([h, t]) =>
+  `<a href="#/${h}" class="${on === h ? 'on' : ''}">${t}</a>`).join('')}</nav>`;
+
+function viewHome() {
+  const w = S.week;
+  const cards = Object.keys(PLAN).map(sid => {
+    const p = PLAN[sid];
+    if (w < p.from) return `<div class="card locked"><span class="badge">${sid}</span><div><b>${p.title}</b><small>Opens in week ${p.from}</small></div></div>`;
+    const [got, tot] = progress(sid), d = S.done[`${w}.${sid}`];
+    const meta = d ? `Done ${nice(d)}` : got ? `${got} of ${tot} sets` : `${moves(sid).length} moves, about ${MINUTES[wi()]} min`;
+    return `<a class="card ${d ? 'done' : ''}" href="#/s/${sid}"><span class="badge">${d ? '&#10003;' : sid}</span><div><b>${p.title}</b><small>${meta}</small></div><span class="go">&rsaquo;</span></a>`;
+  }).join('');
+  const core = ['A', 'B', 'C'].every(s => S.done[`${w}.${s}`]);
+  const wk = `${w}.walk`;
+  app.innerHTML = nav('') + `
+    <div class="wk">
+      <button class="arrow" data-act="prev" ${w === 1 ? 'disabled' : ''} aria-label="Previous week">&lsaquo;</button>
+      <div><h1>Week ${w}</h1><div class="sub">${w <= 4 ? `Ramp ${w} of 4` : 'Base'}</div></div>
+      <button class="arrow" data-act="next" aria-label="Next week">&rsaquo;</button>
+    </div>
+    <p class="note">${NOTES[wi()]}</p>
+    <h2>Sessions</h2>
+    ${cards}
+    <small>Leave a rest day between A, B and C.</small>
+    <h2>Walk, ${WALK[wi()]} min a day</h2>
+    <div class="ex"><div class="ticks">${[0, 1, 2, 3, 4, 5, 6].map(i => tick(wk, i, i + 1, 0, 'sm')).join('')}</div>
+      <p class="up">Brisk enough to breathe hard but still talk. Aim for 5+ days.</p></div>
+    ${core ? `<button class="btn" data-act="next">Start week ${w + 1}</button>` : ''}
+    <button class="btn ghost" data-act="clearweek">Clear this week's ticks</button>`;
+}
+
+function viewSession(sid) {
+  const p = PLAN[sid];
+  if (!p || S.week < p.from) { location.hash = '#/'; return; }
+  curS = sid;
+  awake(true);
+  const pre = `${S.week}.${sid}.`, base = wi() === 4, done = S.done[`${S.week}.${sid}`];
+  const work = moves(sid).map(x => `
+    <section class="ex">
+      <div class="top"><h3>${x.name}</h3><span class="rx">${x.sets} &times; ${x.reps}${x.load ? ' &middot; ' + x.load : ''}</span></div>
+      <p class="cue">${x.cue}</p>
+      <div class="ticks">${Array.from({ length: x.sets }, (_, i) => tick(pre + x.id, i, i + 1, x.rest)).join('')}${holdBtn(x.hold)}</div>
+      ${base && x.up ? `<p class="up">Too easy? ${x.up}</p>` : ''}
+    </section>`).join('');
+  const warm = WARMUP.map(([n, d], i) => `<div class="row"><div><b>${n}</b><small>${d}</small></div>${tick(pre + 'wu' + i, 0, '', 0, 'sm')}</div>`).join('');
+  const cool = STRETCH.map(([n, d, c, h], i) => `<div class="row"><div><b>${n}</b><small>${d}. ${c}</small></div>${holdBtn(h)}${tick(pre + 'st' + i, 0, '', 0, 'sm')}</div>`).join('');
+  app.innerHTML = `
+    <a class="back" href="#/">&lsaquo; Week ${S.week}</a>
+    <h1>${sid}: ${p.title}</h1>
+    <div class="prog" id="prog"></div>
+    <h2>Warm-up, 4 min</h2><div class="list">${warm}</div>
+    <h2>Work</h2>${work}
+    <h2>Stretch, 8 min</h2><div class="list">${cool}</div>
+    <button class="btn ${done ? 'ghost' : ''}" data-act="finish">${done ? 'Finished. Tap to undo' : 'Finish workout'}</button>`;
+  paintProgress();
+}
+function paintProgress() {
+  const el = document.getElementById('prog');
+  if (!el) return;
+  const [got, tot] = progress(curS);
+  el.textContent = `${got} of ${tot} sets`;
+}
+
+function viewWhy() {
+  app.innerHTML = nav('why') + `<div class="prose">
+    <h1>Why this plan</h1>
+    <h2>Rules</h2>
+    <ul>
+      <li>Never train to failure. Stop with 2 or 3 reps left.</li>
+      <li>Sharp or joint pain: stop that move. Sore muscles: fine.</li>
+      <li>Missed a week or feel wrecked: repeat the week. No rush.</li>
+      <li>Walk daily. The lipid benefit needs the cardio, not just the weights.</li>
+      <li>Fat loss comes from food. Training keeps the muscle while you lose.</li>
+      <li>Recheck bloodwork after 12 weeks.</li>
+    </ul>
+    <h2>Evidence</h2>
+    <ul>
+      <li>Cardio plus weights beats either alone for cholesterol: LDL and triglycerides down, HDL up. Effects grow past 12 weeks.
+        <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11787149/">Meta-analysis</a>,
+        <a href="https://brieflands.com/journals/asjsm/articles/165137">combined training review</a>.</li>
+      <li>Exercise alone shifts lipids roughly 4 to 12 percent. Diet and weight loss do the rest.</li>
+      <li>Kettlebell training raised aerobic capacity about 14% and core strength 70% in an ACE study. Fat loss was mixed without diet changes.
+        <a href="https://www.acefitness.org/certifiednewsarticle/3172/kettlebell-research-goes-mainstream/">ACE</a>,
+        <a href="https://www.unm.edu/~lkravitz/Article%20folder/kettlebellresearch.html">research roundup</a>.</li>
+      <li>Beginner dose per ACSM: 1 to 3 sets of 8 to 12 reps, 2 or 3 days a week. Add 2 to 10% load once you beat the target by a rep or two.
+        <a href="https://www.sportgeneeskunde.com/wp-content/uploads/ACSM-Position-Stand-Progression-Models-in-Resistance-Training-for-Healthy-Adults.pdf">ACSM position stand</a>.</li>
+      <li>Stretching per ACSM: 2 to 3+ days a week, 10 to 30s holds, about 60s total per muscle.
+        <a href="https://www.unm.edu/~lkravitz/Article%20folder/ACSMGuidelinesUNM.pdf">ACSM guidelines</a>.</li>
+      <li>Pullups stay well under max: more total reps, less elbow strain.</li>
+    </ul>
+    <h2>Gear</h2>
+    <ul><li>Pullup bar, rings, bands, kettlebells: 2 x 15, 2 x 25, 2 x 35 lb.</li></ul>
+  </div>`;
+}
+
+function viewLog() {
+  const rows = S.log.slice().reverse().map(l =>
+    `<div class="log"><span>${nice(l.d)}</span><span>Week ${l.w} &middot; ${l.s} ${PLAN[l.s] ? PLAN[l.s].title : ''}</span></div>`).join('');
+  app.innerHTML = nav('log') + `
+    <h1>${S.log.length} workout${S.log.length === 1 ? '' : 's'}</h1>
+    ${rows || '<p class="note">Nothing yet. Go do session A.</p>'}
+    <button class="btn ghost" data-act="reset">Erase all data</button>`;
+}
+
+function route() {
+  const h = location.hash.slice(2);
+  curS = null;
+  if (h.startsWith('s/')) viewSession(h.slice(2));
+  else { awake(false); h === 'why' ? viewWhy() : h === 'log' ? viewLog() : viewHome(); }
+  window.scrollTo(0, 0);
+}
+
+// ---------- timer ----------
+const T = { el: document.getElementById('timer'), bar: document.getElementById('tbar'),
+  label: document.getElementById('tlabel'), clock: document.getElementById('tclock') };
+let queue = [], cur = null, iv = null, ac = null;
+
+function prime() {
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+  } catch (e) {}
+}
+function beep(n) {
+  try {
+    for (let i = 0; i < n; i++) {
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + i * 0.28;
+      o.frequency.value = 880; o.connect(g); g.connect(ac.destination);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      o.start(t); o.stop(t + 0.24);
+    }
+  } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate(n > 1 ? [200, 100, 200] : 200);
+}
+function startTimer(steps) {
+  queue = steps.slice();
+  nextStep();
+  if (!iv) iv = setInterval(tickTimer, 200);
+}
+function nextStep() {
+  const [label, sec] = queue.shift();
+  cur = { total: sec, end: Date.now() + sec * 1000 };
+  T.label.textContent = label;
+  T.el.classList.remove('go');
+  T.el.hidden = false;
+  tickTimer();
+}
+function tickTimer() {
+  if (!cur) return;
+  const left = (cur.end - Date.now()) / 1000;
+  if (left <= 0) {
+    beep(queue.length ? 1 : 2);
+    if (queue.length) nextStep(); else endTimer(true);
+    return;
+  }
+  const s = Math.ceil(left);
+  T.clock.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  T.bar.style.width = 100 * (1 - left / cur.total) + '%';
+}
+function endTimer(flash) {
+  cur = null; queue = [];
+  clearInterval(iv); iv = null;
+  if (!flash) { T.el.hidden = true; return; }
+  T.label.textContent = 'Go'; T.clock.textContent = ''; T.bar.style.width = '0';
+  T.el.classList.add('go');
+  setTimeout(() => { if (!cur) T.el.hidden = true; }, 2500);
+}
+
+// keep the screen on during a session
+let wl = null;
+async function awake(on) {
+  try {
+    if (on && 'wakeLock' in navigator) wl = await navigator.wakeLock.request('screen');
+    else if (!on && wl) { await wl.release(); wl = null; }
+  } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && curS) awake(true);
+});
+
+// ---------- taps ----------
+function onTick(t) {
+  const k = t.dataset.k, i = +t.dataset.i, n = S.ticks[k] || 0;
+  const nn = i < n ? i : i + 1;
+  S.ticks[k] = nn; save();
+  document.querySelectorAll(`.tick[data-k="${k}"]`).forEach((b, j) => b.classList.toggle('on', j < nn));
+  if (nn > n && +t.dataset.rest) startTimer([['Rest', +t.dataset.rest]]);
+  paintProgress();
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('button');
+  if (!t) return;
+  prime();
+  if (t.classList.contains('tick')) return onTick(t);
+  const a = t.dataset.act, w = S.week;
+  if (a === 'hold') startTimer([['Get set', 5], ['Hold', +t.dataset.s]]);
+  else if (a === 'tskip') endTimer();
+  else if (a === 'tplus' && cur) { cur.end += 15000; cur.total += 15; tickTimer(); }
+  else if (a === 'prev' || a === 'next') { S.week = Math.max(1, w + (a === 'next' ? 1 : -1)); save(); route(); }
+  else if (a === 'finish') {
+    const k = `${w}.${curS}`;
+    if (S.done[k]) {
+      delete S.done[k];
+      S.log = S.log.filter(l => !(l.w === w && l.s === curS));
+      save(); viewSession(curS);
+    } else {
+      S.done[k] = today();
+      S.log.push({ d: today(), w, s: curS });
+      save(); endTimer(); location.hash = '#/';
+    }
+  }
+  else if (a === 'clearweek' && confirm(`Clear all ticks for week ${w}? The log stays.`)) {
+    for (const o of [S.ticks, S.done]) Object.keys(o).forEach(k => { if (k.startsWith(w + '.')) delete o[k]; });
+    save(); route();
+  }
+  else if (a === 'reset' && confirm('Erase all ticks and the log?')) {
+    S = blank(); save(); route();
+  }
+});
+
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
